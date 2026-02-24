@@ -12,7 +12,7 @@ import {
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { MaterialIcons } from "@expo/vector-icons";
-import { logout } from "../redux/authSlice";
+// import { logout } from "../redux/thunks/logout.js";
 
 const { width } = Dimensions.get("window");
 
@@ -71,26 +71,6 @@ const HomeScreen = ({ navigation }) => {
     (total, item) => total + Number(item.quantity || 0),
     0
   );
-
-   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Logout",
-          onPress: async () => {
-            await dispatch(logout()).unwrap();
-          },
-          style: "destructive"
-        }
-      ]
-    );
-  };
 
   const renderProductItem = ({ item }) => (
     <TouchableOpacity

@@ -15,7 +15,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { updateUserProfile } from "../redux/authSlice";
+import { updateUserProfile } from "../redux/thunks/updateUserProfile.js";
 import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 

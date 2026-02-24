@@ -13,17 +13,17 @@ import {
   // SafeAreaView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { MaterialIcons } from "@expo/vector-icons";
-import { clearCart } from "../redux/cartSlice";
-import { createOrder } from "../redux/ordersSlice";
+import { clearCart } from "../redux/thunks/clearCart.js";
+import { createOrder } from "../redux/thunks/createOrder.js";
 import {
   saveBillingAddress,
   saveCardDetails,
   savePaymentMethod,
   saveShippingAddress,
-} from "../redux/checkoutSlice";
+} from "../redux/slices/checkoutSlice.js";
 
 const CheckoutScreen = ({ navigation }) => {
   const { cartsByUser } = useSelector((state) => state.cart);

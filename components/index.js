@@ -12,3 +12,4 @@ export { default as OrdersScreen } from "./OrdersScreen";
 export { default as OrderDetailScreen } from "./OrderDetailScreen";
 export { default as PaymentMethodsScreen } from "./PaymentMethodScreen";
 export { default as EditProfileScreen } from "./EditProfileScreen";
+export { default as EntryScreen } from "./EntryScreen";

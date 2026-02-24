@@ -76,6 +76,18 @@ const OrderDetailScreen = ({ navigation, route }) => {
     }
   };
 
+  const handleNavigateToProduct = (item) => {
+    // Transform cart item to product format expected by ProductDetailScreen
+    const product = {
+      id: item.productId || item.id,
+      name: item.productName,
+      price: `₦ ${item.productPrice.toLocaleString()}`,
+      image: typeof item.productImage === "string" ? { uri: item.productImage } : item.productImage,
+      description: item.productDescription || null,
+    };
+    navigation.navigate("ProductDetail", { product });
+  };
+
   if (!order) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -133,10 +145,17 @@ const OrderDetailScreen = ({ navigation, route }) => {
         </View>
 
         {/* Order Items */}
+        
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Items</Text>
           {order.items.map((item, index) => (
-            <View key={index} style={styles.itemCard}>
+          <TouchableOpacity 
+                  key={index}
+                  style={styles.productTouchable}
+                  onPress={() => handleNavigateToProduct(item)}
+                  activeOpacity={0.7}
+                >
+            <View style={styles.itemCard}>
               <View style={styles.itemImagePlaceholder}>
                 <MaterialIcons name="shopping-bag" size={30} color="#999" />
               </View>
@@ -151,8 +170,10 @@ const OrderDetailScreen = ({ navigation, route }) => {
                 ₦{(item.productPrice * item.quantity).toFixed(2)}
               </Text>
             </View>
+            </TouchableOpacity>
           ))}
         </View>
+        
 
         {/* Order Summary */}
         <View style={styles.section}>
@@ -422,6 +443,22 @@ const styles = StyleSheet.create({
   },
   paymentText: {
     fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+  },
+  productTouchable: {
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  productTouchableActive: {
+    backgroundColor: "#f0f0f0",
+  },
+  productTouchableDisabled: {
+    opacity: 0.6,
+    backgroundColor: "#f0f0f0",
+  },
+  productName: {
+    fontSize: 15,
     fontWeight: "600",
     color: "#000",
   },

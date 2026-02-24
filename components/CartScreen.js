@@ -8,10 +8,9 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { MaterialIcons } from "@expo/vector-icons";
-import { removeFromCart, updateQuantity } from "../redux/cartSlice";
+import { removeFromCart, updateQuantity } from "../redux/thunks/index.js";
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -20,6 +19,28 @@ const CartScreen = ({ navigation }) => {
   const cart = (userId && cartsByUser[userId]) || [];
   const getTotalPrice = () =>
     cart.reduce((total, item) => total + item.productPrice * item.quantity, 0);
+
+  const handleIncreaseQuantity = async (itemId, currentQuantity) => {
+    try {
+      await dispatch(
+        updateQuantity({ itemId, quantity: currentQuantity + 1 })
+      ).unwrap();
+    } catch (error) {
+      Alert.alert("Error", "Failed to update quantity");
+    }
+  };
+
+  const handleDecreaseQuantity = async (itemId, currentQuantity) => {
+    if (currentQuantity > 1) {
+      try {
+        await dispatch(
+          updateQuantity({ itemId, quantity: currentQuantity - 1 })
+        ).unwrap();
+      } catch (error) {
+        Alert.alert("Error", "Failed to update quantity");
+      }
+    }
+  };
 
   const handleRemoveItem = (itemId) => {
     Alert.alert(
@@ -41,28 +62,6 @@ const CartScreen = ({ navigation }) => {
         },
       ]
     );
-  };
-
-  const handleIncreaseQuantity = async (itemId, currentQuantity) => { //itemId mane kon item er quantity update korte hobe, currentQuantity mane oi item er current quantity
-    try {
-      await dispatch(
-        updateQuantity({ itemId, quantity: currentQuantity + 1 })
-      ).unwrap(); //dispatch er maddhome updateQuantity action call kora, jekhane itemId and new quantity pass kora hoyeche, unwrap mane promise ke resolve kora, jodi update successful hoye tobe success message deya hobe, otherwise error message deya hobe
-    } catch (error) {
-      Alert.alert("Error", "Failed to update quantity");
-    }
-  };
-
-  const handleDecreaseQuantity = async (itemId, currentQuantity) => {
-    if (currentQuantity > 1) {
-      try {
-        await dispatch(
-          updateQuantity({ itemId, quantity: currentQuantity - 1 })
-        ).unwrap();
-      } catch (error) {
-        Alert.alert("Error", "Failed to update quantity");
-      }
-    }
   };
 
   const handleNavigateToProduct = (item) => {

@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { MaterialIcons } from "@expo/vector-icons";
-import { addToCart } from "../redux/cartSlice";
+import { addToCart } from "../redux/thunks/addToCart";
 
 const { width } = Dimensions.get("window");
 
