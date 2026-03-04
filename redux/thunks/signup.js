@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { normalizeEmail } from "../../formated";
+import { generateToken } from "../formated/jwtUtils.js";
 
 export const signup = createAsyncThunk(
   "auth/signup",
@@ -27,7 +28,7 @@ export const signup = createAsyncThunk(
       createdAt: new Date().toISOString(),
     };
 
-    const token = `local-${user.id}`;
+    const token = generateToken({ userId: user.id, email: user.email, name: user.name });
 
     return {
       token,

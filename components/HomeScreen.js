@@ -8,60 +8,20 @@ import {
   Image,
   Dimensions,
   Alert,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { MaterialIcons } from "@expo/vector-icons";
-// import { logout } from "../redux/thunks/logout.js";
+import { getAllProducts, getCategories } from "../services/productsApi";
 
 const { width } = Dimensions.get("window");
 
-const products = [
-  {
-    id: "1",
-    name: "Redmi Note 4",
-    price: "₦ 45,000",
-    originalPrice: "₦ 65,000",
-    discount: "50% OFF",
-    image: require("../assets/Mi-Smart-Band-4-832x558-1573195785-removebg-preview 1.png"),
-  },
-  {
-    id: "2",
-    name: "Apple Watch - series 6",
-    price: "₦ 45,000",
-    originalPrice: "₦ 65,000",
-    discount: "50% OFF",
-    image: require("../assets/6_44mm-blu_889c7c8b-e883-41ab-856c-38c9dd970d12_1200x-removebg-preview 2.png"),
-  },
-  {
-    id: "3",
-    name: "Smart Watch D002",
-    price: "₦ 35,000",
-    originalPrice: "₦ 55,000",
-    discount: "40% OFF",
-    image: require("../assets/D002-removebg-preview 1.png"),
-  },
-  {
-    id: "4",
-    name: "Digital Watch",
-    price: "₦ 25,000",
-    originalPrice: "₦ 45,000",
-    discount: "45% OFF",
-    image: require("../assets/0x0-removebg-preview 1.png"),
-  },
-];
-
-const categories = [
-  { id: "1", name: "Electronics", icon: "devices", color: "#FF6B35" },
-  { id: "2", name: "Fashion", icon: "checkroom", color: "#E8E8E8" },
-  { id: "3", name: "Bag", icon: "shopping-bag", color: "#E8E8E8" },
-  { id: "4", name: "Footwear", icon: "directions-run", color: "#E8E8E8" },
-  { id: "5", name: "Home", icon: "home", color: "#E8E8E8" },
-];
-
 const HomeScreen = ({ navigation }) => {
-  const [menuVisible, setMenuVisible] = useState(false);
-  const dispatch = useDispatch();
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const userData = useSelector((state) => state.auth.userData);
   const userId = userData?.id;
   const userCart = useSelector((state) => // Get the cart for the current user from the cart state, if the user is not logged in, return an empty array
@@ -71,6 +31,60 @@ const HomeScreen = ({ navigation }) => {
     (total, item) => total + Number(item.quantity || 0),
     0
   );
+
+  const promoProducts = useMemo(() => products.slice(0, 2), [products]);
+  const topCategories = useMemo(() => {
+    if (!Array.isArray(categories) || categories.length === 0) return [];
+    const shuffled = [...categories].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 7);
+  }, [categories]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAllProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        if (isMounted) {
+          const productsData = await getAllProducts();
+          setProducts(productsData);
+        }
+      } catch (error) {
+        if (isMounted) {
+          Alert.alert("Error", "Failed to fetch products");
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingProducts(false);
+        }
+      }
+    };
+
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        if (isMounted) {
+          const categoriesData = await getCategories();
+          setCategories(categoriesData);
+        }
+      } catch (error) {
+        if (isMounted) {
+          Alert.alert("Error", "Failed to fetch categories");
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingCategories(false);
+        }
+      }
+    };
+
+    fetchAllProducts();
+    fetchCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const renderProductItem = ({ item }) => (
     <TouchableOpacity
@@ -101,12 +115,20 @@ const HomeScreen = ({ navigation }) => {
   );
 
   const renderCategoryItem = ({ item }) => (
-    <TouchableOpacity style={styles.categoryItem}>
+    <TouchableOpacity
+      style={styles.categoryItem}
+      onPress={() =>
+        navigation.navigate("Search", {
+          categorySlug: item.slug,
+          categoryName: item.name,
+        })
+      }
+    >
       <View style={[styles.categoryIcon, { backgroundColor: item.color }]}>
         <MaterialIcons
           name={item.icon}
           size={24}
-          color={item.color === "#FF6B35" ? "#fff" : "#666"}
+          color={item.color === "#FF6B35" ? "#fff" : "#ffffff"}
         />
       </View>
       <Text style={styles.categoryName} numberOfLines={1}>
@@ -165,13 +187,15 @@ const HomeScreen = ({ navigation }) => {
           contentContainerStyle={styles.promoContent}
         >
           <View style={[styles.promoCard, { backgroundColor: "#FF7B54" }]}>
-            <Text style={styles.promoTitle}>20% OFF DURING THE</Text>
+            <Text style={styles.promoTitle}>10% OFF DURING THE</Text>
             <Text style={styles.promoTitle}>WEEKEND</Text>
             <TouchableOpacity
               style={styles.promoButton}
               onPress={() =>
-                navigation.navigate("ProductDetail", { product: products[0] })
+                promoProducts[0] &&
+                navigation.navigate("ProductDetail", { product: promoProducts[0] })
               }
+              disabled={!promoProducts[0]}
             >
               <Text style={styles.promoButtonText}>Get Now</Text>
             </TouchableOpacity>
@@ -183,8 +207,10 @@ const HomeScreen = ({ navigation }) => {
             <TouchableOpacity
               style={[styles.promoButton, { backgroundColor: "#4ECE5D" }]}
               onPress={() =>
-                navigation.navigate("ProductDetail", { product: products[1] })
+                promoProducts[1] &&
+                navigation.navigate("ProductDetail", { product: promoProducts[1] })
               }
+              disabled={!promoProducts[1]}
             >
               <Text style={styles.promoButtonTextWhite}>Get Now</Text>
             </TouchableOpacity>
@@ -199,25 +225,33 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={categories}
-          renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesList}
-        />
+        {loadingCategories ? (
+          <ActivityIndicator style={styles.sectionLoader} color="#FF6B35" />
+        ) : (
+          <FlatList
+            data={topCategories}
+            renderItem={renderCategoryItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesList}
+          />
+        )}
 
         {/* Products Section */}
         <View style={styles.productsSection}>
-          <FlatList
-            data={products}
-            renderItem={renderProductItem}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            contentContainerStyle={styles.productsList}
-          />
+          {loadingProducts ? (
+            <ActivityIndicator style={styles.sectionLoader} color="#FF6B35" />
+          ) : (
+            <FlatList
+              data={products}
+              renderItem={renderProductItem}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              scrollEnabled={false}
+              contentContainerStyle={styles.productsList}
+            />
+          )}
         </View>
       </ScrollView>
     </View>
@@ -446,6 +480,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#999",
     textDecorationLine: "line-through",
+  },
+  sectionLoader: {
+    marginBottom: 20,
   },
   avatarContainer: {
     width: 40,

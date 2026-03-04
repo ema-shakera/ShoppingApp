@@ -1,7 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 // import { getUserId } from "../formated/getUserId.js";
 
-const getUserId = (state) => state.auth.userData?.id || null;
+const getUserId = (state) => state.auth.userData?.id || null; 
+// Helper function to get the user ID from the auth state, this function checks if there is user data in the auth state and returns the user's ID if it exists, otherwise it returns null. This is used in the fetchCart thunk to determine which cart to fetch based on the currently authenticated user.
 
 
 export const fetchCart = createAsyncThunk(

@@ -1,5 +1,6 @@
 export { login } from "./login.js";
 export { signup } from "./signup.js";
+export { restoreToken } from "./restoreToken.js";
 export { updateUserProfile } from "./updateUserProfile.js";
 export { logout } from "./logout.js";
 export { fetchCart } from "./fetchCart.js";

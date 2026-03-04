@@ -4,6 +4,7 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React from "react";
@@ -88,6 +89,16 @@ const OrderDetailScreen = ({ navigation, route }) => {
     navigation.navigate("ProductDetail", { product });
   };
 
+  const getImageSource = (productImage) => {
+    if (typeof productImage === "string" && productImage.trim()) {
+      return { uri: productImage };
+    }
+    if (productImage && typeof productImage === "object") {
+      return productImage;
+    }
+    return null;
+  };
+
   if (!order) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -157,7 +168,14 @@ const OrderDetailScreen = ({ navigation, route }) => {
                 >
             <View style={styles.itemCard}>
               <View style={styles.itemImagePlaceholder}>
-                <MaterialIcons name="shopping-bag" size={30} color="#999" />
+                {getImageSource(item.productImage) ? (
+                  <Image
+                    source={getImageSource(item.productImage)}
+                    style={styles.itemImage}
+                  />
+                ) : (
+                  <MaterialIcons name="shopping-bag" size={30} color="#999" />
+                )}
               </View>
               <View style={styles.itemDetails}>
                 <Text style={styles.itemName} numberOfLines={2}>
@@ -363,6 +381,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+  },
+  itemImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 8,
+    resizeMode: "cover",
   },
   itemDetails: {
     flex: 1,

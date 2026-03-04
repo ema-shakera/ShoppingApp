@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { login , signup, updateUserProfile, logout} from "../thunks";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { login , signup, updateUserProfile, logout, restoreToken } from "../thunks";
 
 
 const authSlice = createSlice({
@@ -22,10 +23,25 @@ const authSlice = createSlice({
         state.userToken = action.payload.token;
         state.userData = action.payload.user;
         state.loading = false;
+        // Save token to AsyncStorage
+        AsyncStorage.setItem("userToken", action.payload.token);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Login failed";
+      })
+      .addCase(restoreToken.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(restoreToken.fulfilled, (state, action) => {
+        state.userToken = action.payload.token;
+        state.userData = action.payload.user;
+        state.loading = false;
+      })
+      .addCase(restoreToken.rejected, (state) => {
+        state.loading = false;
+        state.userToken = null;
+        state.userData = null;
       })
       .addCase(signup.pending, (state) => {
         state.loading = true;
@@ -38,6 +54,8 @@ const authSlice = createSlice({
         state.userToken = action.payload.token;
         state.userData = action.payload.user;
         state.loading = false;
+        // Save token to AsyncStorage
+        AsyncStorage.setItem("userToken", action.payload.token);
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
@@ -56,12 +74,15 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(logout.pending, (state) => {
-        state.loading = true;
+        state.loading = true; // Set loading to true when logout is initiated, this indicates that the logout process is in progress, and can be used to show a loading indicator in the UI if needed.
+        state.error = null; // Clear any existing errors when logout is initiated, this ensures that any previous error messages do not persist during the logout process, providing a clean state for the user.
       })
       .addCase(logout.fulfilled, (state) => {
         state.userToken = null;
         state.userData = null;
         state.loading = false;
+        // Remove token from AsyncStorage
+        AsyncStorage.removeItem("userToken");
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;
