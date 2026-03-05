@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { getCategories } from "../services/productsApi";
 
@@ -22,7 +22,8 @@ const CategoriesScreen = ({ navigation }) => {
       setLoading(true);
       try {
         const categoriesData = await getCategories();
-        if (isMounted) {
+        if (isMounted) { 
+          // check to ensure that the component is still mounted before updating state with the fetched categories data. This prevents potential memory leaks or errors if the component has been unmounted while the asynchronous operation was still in progress.
           setCategories(categoriesData);
         }
       } catch (error) {
@@ -36,10 +37,11 @@ const CategoriesScreen = ({ navigation }) => {
       }
     };
 
-    loadCategories();
+    loadCategories(); // load kortesi component mount howar por and handle loading state and errors appropriately. 
 
     return () => {
-      isMounted = false;
+      isMounted = false; 
+      // Set isMounted to false when the component unmounts to prevent state updates on an unmounted component- can lead to memory leaks or errors.
     };
   }, []);
 
@@ -48,7 +50,7 @@ const CategoriesScreen = ({ navigation }) => {
       style={[styles.categoryCard, { backgroundColor: item.color }]}
       onPress={() =>
         navigation.navigate("Search", {
-          categorySlug: item.slug,
+          categorySlug: item.slug, //slug mane category er unique identifier, ja Search screen e use hobe products filter korar jonno based on the selected category. By passing the category slug as a parameter, we can ensure that the Search screen displays only products that belong to the chosen category, providing a more relevant and streamlined shopping experience for users.
           categoryName: item.name,
         })
       }
@@ -77,7 +79,7 @@ const CategoriesScreen = ({ navigation }) => {
           data={categories}
           renderItem={renderCategoryItem}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          numColumns={2} //show only 2 column
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
         />

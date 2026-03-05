@@ -23,6 +23,19 @@ const ProductDetailScreen = ({ navigation, route }) => {
   const [selectedSize, setSelectedSize] = useState("M");
   const [isAdding, setIsAdding] = useState(false);
 
+  const getErrorMessage = (error, fallback) => {
+    if (typeof error === "string") return error;
+    if (error && typeof error === "object") {
+      if (typeof error.message === "string") return error.message;
+      try {
+        return JSON.stringify(error);
+      } catch (_serializationError) {
+        return fallback;
+      }
+    }
+    return fallback;
+  };
+
   const sizes = ["S", "M", "L", "XL"];
 
   const incrementQuantity = () => setQuantity(quantity + 1);
@@ -55,7 +68,7 @@ const ProductDetailScreen = ({ navigation, route }) => {
       );
     } catch (error) {
       setIsAdding(false);
-      Alert.alert("Error", error || "Failed to add item to cart");
+      Alert.alert("Error", getErrorMessage(error, "Failed to add item to cart"));
     }
   };
 

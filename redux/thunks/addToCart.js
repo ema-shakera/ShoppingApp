@@ -1,7 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-// import { getUserId } from "../formated/index.js";
+import { addNewCart, buildApiProductsPayload, updateCartById } from "../../services/cartsApi.js";
 
 const getUserId = (state) => state.auth.userData?.id || null;
+const isCartNotFoundError = (error) =>
+  /cart\s+with\s+id|cart\s+not\s+found|not\s+found/i.test(String(error?.message || error || ""));
 
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
@@ -13,16 +15,18 @@ export const addToCart = createAsyncThunk(
     }
 
     const currentCart = state.cart.cartsByUser[userId] || [];
-    const productId = product.id;
+    const productId = String(product.id);
     const productName = product.name || product.productName;
     const productPrice = parseInt(`${product.price}`.replace(/[₦,]/g, ""), 10); // Remove currency symbols and commas before parsing the price, 10 is the radix for decimal numbers
     const productImage = product.image || product.productImage;
 
     const existingIndex = currentCart.findIndex(
-      (item) => item.productId === productId && item.size === size
+      (item) => String(item.productId) === productId && item.size === size
     );
 
     let updatedCart = [...currentCart];
+    const existingCartId = state.cart.cartIdByUser?.[userId] || null;
+
     if (existingIndex !== -1) {
       const existingItem = updatedCart[existingIndex];
       updatedCart[existingIndex] = {
@@ -38,9 +42,42 @@ export const addToCart = createAsyncThunk(
         productImage,
         quantity: Number(quantity),
         size,
+        sourceCartId: existingCartId,
       });
     }
 
-    return { userId, cart: updatedCart };
+    try {
+      const selectedItem = existingIndex !== -1 ? updatedCart[existingIndex] : updatedCart[updatedCart.length - 1];
+      const targetCartId = selectedItem?.sourceCartId || existingCartId;
+      const targetCartItems = targetCartId
+        ? updatedCart.filter((item) => item.sourceCartId === targetCartId)
+        : updatedCart;
+      const products = buildApiProductsPayload(targetCartItems);
+
+      if (targetCartId) {
+        await updateCartById(targetCartId, { merge: true, products });
+        return { userId, cartId: targetCartId, cart: updatedCart };
+      }
+
+      await addNewCart({ userId, products });
+      const patchedCart = updatedCart.map((item) => ({
+        ...item,
+        sourceCartId: item.sourceCartId || null,
+      }));
+      return { userId, cartId: null, cart: patchedCart };
+    } catch (error) {
+      if (isCartNotFoundError(error)) {
+        const recoveredCart = updatedCart.map((item) => ({
+          ...item,
+          sourceCartId:
+            item.sourceCartId && item.sourceCartId === existingCartId
+              ? null
+              : item.sourceCartId || null,
+        }));
+        return { userId, cartId: null, cart: recoveredCart };
+      }
+
+      return rejectWithValue(error?.message || "Failed to add item");
+    }
   }
 );

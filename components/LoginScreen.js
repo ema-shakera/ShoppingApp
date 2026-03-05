@@ -4,7 +4,6 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
@@ -16,16 +15,14 @@ import {
   FontAwesome5,
 } from "@expo/vector-icons";
 import GoogleSVGComponent from "../assets/Google";
-import { validateEmail } from "../formated/emailValidation.js";
 import { validatePassword } from "../formated/passwordValidation.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useLoginForm } from "../hooks/useLoginForm.js";
 
-const isEmailValid = (email) => validateEmail(email);
 const isPasswordValid = (password) => validatePassword(password);
 
 
-  const LoginScreen = () => {
+  const LoginScreen = ({ navigation }) => {
   const { loginUser, loading } = useAuth();
   const {
     email,
@@ -65,24 +62,20 @@ const isPasswordValid = (password) => validatePassword(password);
 
           <View style={styles.inputContainer}>
             <MaterialIcons
-              name="email"
+              name="person"
               size={20}
               color="#999"
               style={styles.icon}
             />
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder="Username or Email"
               placeholderTextColor="#999"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
-              keyboardType="email-address"
             />
           </View>
-          {email && !isEmailValid(email) && (
-            <Text style={styles.errorText}>Please enter a valid email address</Text>
-          )}
 
           <View style={styles.inputContainer}>
             <MaterialIcons
@@ -125,6 +118,9 @@ const isPasswordValid = (password) => validatePassword(password);
               </Text>
             )}
           </TouchableOpacity>
+          {password && !isPasswordValid(password) && (
+            <Text style={styles.errorText}>Password must be at least 6 characters</Text>
+          )}
 
           <Text style={styles.orText}>- OR Continue with -</Text>
 

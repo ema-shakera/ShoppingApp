@@ -1,8 +1,9 @@
 const BASE_URL = "https://dummyjson.com/products";
 const PRODUCTS_LIMIT = 30;
 
-const CATEGORY_ICON_MAP = {
-  smartphones: "phone-android",
+const CATEGORY_ICON_MAP = { 
+  // A mapping of product category slugs to corresponding icon names, which can be used to display relevant icons for each category in the UI. If a category slug does not have a specific icon mapping, a default "category" icon will be used.
+  smartphones: "phone-android", 
   "mobile-accessories": "devices",
   laptops: "laptop",
   tablets: "tablet-mac",
@@ -44,26 +45,26 @@ const CATEGORY_COLORS = [
   "#52d764",
 ];
 
-const formatNaira = (amount) => `₦ ${Number(amount || 0).toLocaleString()}`;
+const formatNaira = (amount) => `₦ ${Number(amount || 0).toLocaleString()}`; // what is naira? Naira is the currency of Nigeria, represented by the symbol "₦". The formatNaira function takes a numeric amount and formats it as a string with the Naira symbol followed by the amount formatted with commas as thousand separators. For example, if you pass 1000000 to formatNaira, it will return "₦ 1,000,000".
 
-const toTitleCase = (value = "") =>
+const toTitleCase = (value = "") => // Converts a string to Title Case (capitalizing the first letter of each word) by replacing hyphens with spaces, splitting into words, capitalizing each word, and joining them back together.
   value
     .replace(/-/g, " ")
     .split(" ")
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .filter(Boolean) // Remove empty strings resulting from multiple spaces
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word and concatenate it with the rest of the word
+    .join(" "); // Join the capitalized words back into a single string with spaces in between
 
-export const mapProduct = (item) => {
-  const price = Number(item?.price || 0);
+export const mapProduct = (item) => { 
+  const price = Number(item?.price || 0); // Convert the price to a number, defaulting to 0 if it's not provided or not a valid number. This ensures that we have a consistent numeric value for price calculations and formatting, even if the API response is missing or malformed.
   const discountPercentage = Number(item?.discountPercentage || 0);
   const basePrice =
     discountPercentage > 0
-      ? Math.round(price / (1 - discountPercentage / 100))
-      : null;
+      ? Math.round(price / (1 - discountPercentage / 100)) 
+      : null; // Calculate the original price before discount based on the current price and discount percentage. If there is a valid discount percentage, we can derive the original price using the formula: originalPrice = price / (1 - discountPercentage/100). The result is rounded to the nearest whole number for cleaner display. If there is no discount, we set basePrice to null since it's not applicable.
 
   return {
-    id: String(item?.id),
+    id: String(item?.id), 
     name: item?.title || "Product",
     price: formatNaira(price),
     originalPrice: basePrice ? formatNaira(basePrice) : null,
@@ -105,6 +106,40 @@ export const getAllProducts = async () => {
   } while (skip < total);
 
   return allProducts.map(mapProduct);
+};
+
+export const getProductsPage = async ({ limit = 10, skip = 0 } = {}) => {
+  const safeLimit = Math.max(1, Number(limit) || 10);
+  const safeSkip = Math.max(0, Number(skip) || 0);
+
+  const response = await fetch(
+    `${BASE_URL}?limit=${safeLimit}&skip=${safeSkip}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch products");
+  }
+
+  const data = await response.json();
+  const products = Array.isArray(data?.products) ? data.products.map(mapProduct) : [];
+
+  return {
+    products,
+    total: Number(data?.total || 0),
+    skip: Number(data?.skip || safeSkip),
+    limit: Number(data?.limit || safeLimit),
+  };
+};
+
+export const getSingleProduct = async (productId) => {
+  const response = await fetch(`${BASE_URL}/${productId}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch product");
+  }
+
+  const data = await response.json();
+  return mapProduct(data);
 };
 
 export const getCategories = async () => {

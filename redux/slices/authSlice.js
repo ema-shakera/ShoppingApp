@@ -1,6 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { login , signup, updateUserProfile, logout, restoreToken } from "../thunks";
+import {
+  login,
+  signup,
+  updateUserProfile,
+  logout,
+  restoreToken,
+  getCurrentUser,
+  refreshSession,
+} from "../thunks";
 
 
 const authSlice = createSlice({
@@ -8,6 +16,7 @@ const authSlice = createSlice({
   initialState: {
     users: [],
     userToken: null,
+    refreshToken: null,
     userData: null,
     loading: false,
     error: null,
@@ -21,10 +30,13 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.userToken = action.payload.token;
+        state.refreshToken = action.payload.refreshToken || null;
         state.userData = action.payload.user;
         state.loading = false;
-        // Save token to AsyncStorage
-        AsyncStorage.setItem("userToken", action.payload.token);
+        AsyncStorage.multiSet([
+          ["userToken", action.payload.token],
+          ["refreshToken", action.payload.refreshToken || ""],
+        ]);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -35,13 +47,40 @@ const authSlice = createSlice({
       })
       .addCase(restoreToken.fulfilled, (state, action) => {
         state.userToken = action.payload.token;
+        state.refreshToken = action.payload.refreshToken || null;
         state.userData = action.payload.user;
         state.loading = false;
       })
       .addCase(restoreToken.rejected, (state) => {
         state.loading = false;
         state.userToken = null;
+        state.refreshToken = null;
         state.userData = null;
+      })
+      .addCase(getCurrentUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getCurrentUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userData = action.payload.user;
+      })
+      .addCase(getCurrentUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to get current user";
+      })
+      .addCase(refreshSession.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(refreshSession.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userToken = action.payload.token;
+        state.refreshToken = action.payload.refreshToken || null;
+      })
+      .addCase(refreshSession.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to refresh session";
       })
       .addCase(signup.pending, (state) => {
         state.loading = true;
@@ -53,9 +92,12 @@ const authSlice = createSlice({
         }
         state.userToken = action.payload.token;
         state.userData = action.payload.user;
+        state.refreshToken = action.payload.refreshToken || null;
         state.loading = false;
-        // Save token to AsyncStorage
-        AsyncStorage.setItem("userToken", action.payload.token);
+        AsyncStorage.multiSet([
+          ["userToken", action.payload.token],
+          ["refreshToken", action.payload.refreshToken || ""],
+        ]);
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
@@ -79,10 +121,10 @@ const authSlice = createSlice({
       })
       .addCase(logout.fulfilled, (state) => {
         state.userToken = null;
+        state.refreshToken = null;
         state.userData = null;
         state.loading = false;
-        // Remove token from AsyncStorage
-        AsyncStorage.removeItem("userToken");
+        AsyncStorage.multiRemove(["userToken", "refreshToken"]);
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;

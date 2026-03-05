@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { validateEmail } from "../formated/emailValidation";
 import { validatePassword } from "../formated/passwordValidation";
 
 export const useLoginForm = () => {
@@ -8,7 +7,7 @@ export const useLoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoginDisabled, setIsLoginDisabled] = useState(true);
 
-  const isEmailValid = validateEmail(email);
+  const isEmailValid = email.trim().length > 0;
   const isPasswordValid = validatePassword(password);
 
   const isFormValid =

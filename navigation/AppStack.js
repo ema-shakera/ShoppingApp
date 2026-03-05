@@ -11,6 +11,7 @@ import OrdersScreen from "../components/OrdersScreen";
 import OrderDetailScreen from "../components/OrderDetailScreen";
 import PaymentMethodsScreen from "../components/PaymentMethodScreen";
 import EditProfileScreen from "../components/EditProfileScreen";
+import DeveloperApiTestScreen from "../components/DeveloperApiTestScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +37,7 @@ export default function AppStack() {
       <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
       <Stack.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="DeveloperApiTest" component={DeveloperApiTestScreen} />
     </Stack.Navigator>
   );
 }

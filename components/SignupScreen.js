@@ -74,9 +74,9 @@ const isPasswordValid = (password) => validatePassword(password);
 
     try {
       await dispatch(signup({ name: name.trim(), email: email.trim().toLowerCase(), password })).unwrap();
-      Alert.alert("Success", "Account created successfully!");
+      Alert.alert("Info", "Signup is disabled in strict DummyJSON auth mode.");
     } catch (error) {
-      Alert.alert("Signup Failed", error || "Please try again");
+      Alert.alert("Signup Unavailable", error || "Use existing DummyJSON credentials to login.");
     }
   };
 

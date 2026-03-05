@@ -24,7 +24,9 @@ const EditProfileScreen = ({ navigation }) => {
   const userData = useSelector((state) => state.auth.userData);
 
   const [name, setName] = useState(userData?.name || "");
-  const [profileImage, setProfileImage] = useState(userData?.profileImage || null);
+  const [profileImage, setProfileImage] = useState(
+    userData?.profileImage || userData?.image || null
+  );
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
